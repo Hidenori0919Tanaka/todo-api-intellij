@@ -15,9 +15,32 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	compileOnly 'io.swagger:swagger-annotations:1.6.5'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+task buildApiDoc(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
+	generatorName = "html2"
+	inputSpec = "$rootDir/src/main/resources/api-schema.yaml".toString()
+	outputDir = "$buildDir/apidoc".toString()
+}
+
+task buildSpringServer(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
+	generatorName = "spring"
+	inputSpec = "$rootDir/src/main/resources/api-schema.yaml".toString()
+	outputDir = "$buildDir/spring".toString()
+	apiPackage = "com.example.todoapi.controller"
+	modelPackage = "com.example.todoapi.model"
+	configOptions = [
+			interfaceOnly: "true"
+	]
+}
+
+compileJava.dependsOn tasks.buildSpringServer
+
+sourceSets.main.java.srcDir "$buildDir/spring/src/main/java"
